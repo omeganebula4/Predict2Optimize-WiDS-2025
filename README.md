@@ -1,109 +1,68 @@
-# Predict2Optimize — WiDS 2025  
-**Predicting Market Dynamics for Data-Driven Portfolio Optimization**
+# Predict2Optimize: Market Dynamics & Portfolio Optimization
 
-## Overview
-In this project, you will build a simple end-to-end pipeline:
+This repository documents my progress through the **Predict2Optimize** project, which aims to build a data-driven pipeline for financial forecasting and portfolio management.
 
-> **data → features → prediction → optimization → backtesting**
+## Project Overview
+The project follows a structured path:
+**Data Collection → Feature Engineering → Return Prediction → Portfolio Optimization → Backtesting**
 
-By Week 5, you will be able to produce predicted returns, optimize a portfolio using those predictions, and evaluate performance over time.
-
----
-
-# Week 1 — Financial Data & Feature Extraction
-**Goals**
-- Become familiar with NumPy, Pandas, Matplotlib.
-- Download daily price data using `yfinance`.
-- Compute daily returns and construct basic rolling features.
-
-**Tasks**
-- Load and inspect price data.  
-- Handle missing values.  
-- Compute log returns.  
-- Build simple rolling features (5-day return, 20-day volatility, 10-day momentum).  
-- Visualize prices, returns, and features.
+Currently, I have completed the tasks for **Week 1** and **Week 2**.
 
 ---
 
-# Week 2 — Baseline Models and Linear Predictors
-**Goals**
-- Predict next-day returns using simple regression models.
-- Establish performance baselines.
+## Week 1: Financial Data & Feature Extraction
+The goal of this week was to build a foundation in handling financial time-series data and understanding its statistical properties.
 
-**Tasks**
-- Use time-ordered train/test splits.  
-- Implement:  
-  - mean predictor (baseline)  
-  - linear or ridge regression  
-  - optional tree-based model (e.g., XGBoost)  
-- Evaluate using standard regression metrics.
-
----
-
-# Week 3 — Neural Networks and Walk-Forward Prediction
-**Goals**
-- Train a small MLP to predict returns.
-- Set up a rolling, walk-forward evaluation loop.
-
-**Tasks**
-- Implement a small feedforward network in PyTorch.  
-- Normalize features; apply early stopping.  
-- Perform walk-forward prediction:  
-  **train on past → predict next segment → advance window → repeat**.
+### Tasks & Implementation
+1.  **Data Acquisition**:
+    *   Utilized `yfinance` to download historical `Adjusted Close` prices for a basket of tech stocks: `AAPL`, `MSFT`, `GOOG`, `AMZN`, `TSLA`, and `NVDA`.
+    *   Managed data quality by handling missing values with forward and backward filling.
+2.  **Exploratory Data Analysis**:
+    *   Calculated simple and **log returns** over various horizons (1, 5, and 20 days).
+    *   Visualized price trends alongside 20-day moving averages and rolling volatilities.
+    *   Observed "Volatility Clustering" — where high-volatility periods (like the March 2020 COVID crash) tend to persist.
+3.  **Statistical Testing**:
+    *   Performed the **Augmented Dickey-Fuller (ADF) Test** on log returns, confirming they are stationary (p-value ≈ 0), unlike raw prices.
+4.  **Volatility Modeling**:
+    *   Compared **Rolling Window Volatility** with **Exponentially Weighted Moving Average (EWMA)** ($\lambda = 0.94$).
+    *   Implemented a regime detection system by shading "High Volatility" regions where EWMA exceeded the 60th percentile.
+5.  **The "Normal" Illusion**:
+    *   Analyzed **Skewness** and **Kurtosis** across Daily, Weekly, and Monthly horizons.
+    *   Verified the principle of **Aggregational Gaussianity**: while daily returns have "fat tails" (high kurtosis), returns over longer horizons tend to look more normally distributed.
+6.  **Smart Investing (Bonus)**:
+    *   Calculated the potential profit from a long-term investment in NVIDIA ($NVDA) and translated it into "purchasing power" for modern hardware (RTX 4090s).
 
 ---
 
-# Week 4 — Portfolio Optimization \& Robust Extensions
-**Goals**
-- Convert predicted returns into portfolio weights via Markowitz optimization.
-- Study the convex optimization formulation underlying portfolio construction.
-- Extend the classical model toward simple forms of robust optimization.
+## Week 2: Baseline Prediction Models & Evaluation
+In the second week, I shifted focus to predictive modeling, emphasizing rigorous evaluation to avoid common pitfalls like look-ahead bias.
 
-**Tasks**
-- Formulate classical Markowitz portfolio optimization as a convex program.
-- Implement the optimization directly in `cvxpy` for a subset of portfolio classes.
-- Extend the formulation with simple robustness terms to handle forecast uncertainty.
-- Analyze efficient frontiers and allocation stability under varying assumptions.
-- Optionally, compare to PyPortfolioOpt's implementation
+### Tasks & Implementation
+1.  **Feature Construction**:
+    *   Developed a feature matrix for predicting next-day returns ($r_{t+1}$):
+        *   **Lags**: $r_t$ and $r_{t-1}$.
+        *   **Rolling Stats**: 20-day mean and standard deviation.
+        *   **Momentum**: 5-day cumulative return.
+2.  **Model Development**:
+    *   **Naive Baselines**: Implemented a **Zero Predictor** and a **Rolling Mean Predictor** to serve as benchmarks.
+    *   **Statistical Models**: Built an **Ordinary Least Squares (OLS)** regression model.
+    *   **Machine Learning**: Explored **Random Forest Regressors** to capture non-linearities, noting their tendency to overfit in noisy financial data.
+3.  **Walk-Forward Evaluation**:
+    *   Instead of traditional random splits, I used **TimeSeriesSplit** (100 folds) for walk-forward validation.
+    *   This ensures that the model is always tested on data that chronologically follows the training set, mimicking real-world trading.
+4.  **Trading Strategy Simulation (Bonus)**:
+    *   Developed a simple "all-in" long/short strategy based on the sign of the predicted returns.
+    *   Compared the cumulative returns of this strategy across different models (Zero, Rolling Mean, OLS, and RF).
 
----
-
-# Week 5 — Integration and Final Backtest
-**Goals**
-- Combine your predictor with your optimizer into a full pipeline.
-- Evaluate the strategy over time and interpret results.
-
-**Tasks**
-- For each period:  
-  **predict returns → compute optimal weights → update portfolio value**  
-- Plot cumulative returns.  
-- Plot an efficient frontier for a chosen date.  
-- Backtest the full prediction–optimization pipeline over rolling windows.
-- Write a short summary of results and limitations.
+### Key Findings
+*   **The Baseline Hurdle**: Beating a simple Zero Predictor is challenging in the stock market due to the extremely low signal-to-noise ratio.
+*   **Evaluation Discipline**: Time-series validation is non-negotiable; random splits would lead to "leakage" and unrealistic performance expectations.
+*   **Model Comparison**: Evaluated models using **RMSE** (Root Mean Squared Error), observing how performance fluctuates across different market regimes.
 
 ---
 
-## (Optional Extension) Robust Optimization & Allocation Stability
-Classical Markowitz optimization is highly sensitive to errors in predicted returns
-and covariance estimates. This extension studies principled convex methods to
-robustify portfolio allocations.
-
-**Tasks**
-- Introduce uncertainty-aware terms in the optimization objective or constraints.
-- Compare classical vs robust portfolio allocations under perturbed predictions.
-- Measure allocation sensitivity, turnover, and realized performance.
-- Backtest the full prediction–optimization pipeline over rolling windows.
-
----
-
-# References
-- NumPy, Pandas, Matplotlib documentation  
-- Scikit-Learn documentation  
-- PyTorch quickstart  
-- [`cvxpy` documentation](https://www.cvxpy.org/tutorial/index.html)  
-- [PyPortfolioOpt documentation](https://pyportfolioopt.readthedocs.io/en/latest/)  
-- [The Portfolio Optimization Book](https://portfoliooptimizationbook.com/) — Ch. 1–2–3 (Weeks 1–2), Ch. 6–8 (Weeks 4–5)  
-- *Successful Algorithmic Trading* (general reference)  
-- JAIR (2024):  
-  **Decision-Focused Learning: Foundations, State of the Art, Benchmark and Future Opportunities**  
-  — especially p. 40 for the Predict-to-Optimize portfolio framing.
+## Technical Stack
+*   **Data**: `yfinance`
+*   **Analysis**: `pandas`, `numpy`, `statsmodels`
+*   **Visualization**: `matplotlib`, `seaborn`
+*   **Modeling**: `scikit-learn`
