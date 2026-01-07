@@ -32,6 +32,12 @@ The goal of this week was to build a foundation in handling financial time-serie
 6.  **Smart Investing (Bonus)**:
     *   Calculated the potential profit from a long-term investment in NVIDIA ($NVDA) and translated it into "purchasing power" for modern hardware (RTX 4090s).
 
+### Learning Outcomes
+*   **Stationarity is Key**: Learned that raw prices are non-stationary and cannot be used directly in many statistical models. The ADF test is a crucial tool for verifying that returns are suitable for modeling.
+*   **Volatility isn't Constant**: Gained an intuition for "Volatility Clustering" and learned how EWMA provides a more responsive risk measure than simple rolling averages.
+*   **The Normality Myth**: Discovered that financial returns often violate the "Normal Distribution" assumption at daily scales (excess kurtosis/fat tails), which is vital for accurate risk assessment.
+*   **Data Handling Proficiency**: Mastered the use of `pandas` and `yfinance` for cleaning and transforming messy financial time-series data.
+
 ---
 
 ## Week 2: Baseline Prediction Models & Evaluation
@@ -54,10 +60,11 @@ In the second week, I shifted focus to predictive modeling, emphasizing rigorous
     *   Developed a simple "all-in" long/short strategy based on the sign of the predicted returns.
     *   Compared the cumulative returns of this strategy across different models (Zero, Rolling Mean, OLS, and RF).
 
-### Key Findings
-*   **The Baseline Hurdle**: Beating a simple Zero Predictor is challenging in the stock market due to the extremely low signal-to-noise ratio.
-*   **Evaluation Discipline**: Time-series validation is non-negotiable; random splits would lead to "leakage" and unrealistic performance expectations.
-*   **Model Comparison**: Evaluated models using **RMSE** (Root Mean Squared Error), observing how performance fluctuates across different market regimes.
+### Learning Outcomes
+1.  **Evaluation Discipline**: Recognized that random train/test splits are disastrous for time-series data as they lead to "look-ahead bias." Walk-forward validation (via `TimeSeriesSplit`) is the only way to get a realistic estimate of performance.
+2.  **The Baseline Hurdle**: Learned that beating simple benchmarks (like predicting zero) is exceptionally difficult in finance due to the low signal-to-noise ratio. A model that doesn't beat these baselines is effectively learning noise.
+3.  **Model Overfitting**: Observed how high-capacity models like Random Forests can easily overfit historical noise, reinforcing the value of simpler, more robust models like OLS in certain regimes.
+4.  **Prediction vs. Strategy**: Realized that even a model with decent RMSE might not translate into a profitable trading strategy, highlighting the gap between statistical accuracy and economic utility.
 
 ---
 
